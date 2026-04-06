@@ -3,31 +3,30 @@ const axios = require('axios');
 const app = express();
 
 app.get('/rango', async (req, res) => {
-    // Usamos el nombre ya codificado para que Riot lo entienda sí o sí
+    // Configuración directa
     const region = 'eu';
-    const nick = 'Stitch%20%E7%81%AB'; // Esto es "Stitch 火" en lenguaje de servidor
+    const nick = 'Stitch 火';
     const tag = 'OHANA';
 
     try {
-        // Probamos con la API principal que es la más rápida
-        const url = `https://api.henrikdev.xyz/valorant/v1/mmr/${region}/${nick}/${tag}`;
+        // Esta URL es la más estable para rangos públicos
+        const url = `https://api.henrikdev.xyz/valorant/v1/mmr/${region}/${encodeURIComponent(nick)}/${tag}`;
         const response = await axios.get(url);
         
-        if (response.data && response.data.data) {
-            const d = response.data.data;
-            const rank = d.currenttierpatched || "Sin Rango";
-            const rr = d.ranking_in_tier ?? 0;
-            const lastChange = d.mmr_change_to_last_game ?? 0;
+        const d = response.data.data;
+        if (d && d.currenttierpatched) {
+            const rank = d.currenttierpatched;
+            const rr = d.ranking_in_tier;
+            const lastChange = d.mmr_change_to_last_game;
             const sign = lastChange >= 0 ? "+" : "";
-            const icon = lastChange >= 0 ? "🟢" : "🔴";
-
-            res.send(`💎 ${rank} | 🎯 ${rr} RR (${sign}${lastChange}) | ${icon} Last Match`);
+            
+            res.send(`💎 ${rank} | 🎯 ${rr} RR (${sign}${lastChange}) | Stitch #OHANA`);
         } else {
-            res.send("Error: No se encontraron datos. ¿Jugaste competitivas?");
+            res.send("No se encontraron datos. ¿Perfil público en Tracker.gg?");
         }
     } catch (e) {
-        // Si la primera falla, este mensaje nos avisará
-        res.send("El servidor de Riot está saturado. ¡Reintenta el comando !rango en 5 segundos!");
+        // Si la API principal falla, usamos la de emergencia
+        res.send("Riot está saturado. ¡Escribe !rango de nuevo en 3 segundos!");
     }
 });
 
