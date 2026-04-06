@@ -3,36 +3,38 @@ const axios = require('axios');
 const app = express();
 
 app.get('/rango', async (req, res) => {
-    // Configuración absoluta para tu cuenta
+    // Definimos tus datos aquí dentro
     const region = 'eu';
     const nick = 'Stitch 火';
     const tag = 'OHANA';
 
     try {
-        // Probamos con la API de respaldo de Kyros que es más estable para caracteres especiales
-        const url = `https://api.kyros.tv/valorant/v1/mmr/${region}/${encodeURIComponent(nick)}/${tag}`;
-        const response = await axios.get(url, { timeout: 5000 }); // Tiempo de espera de 5 segundos
+        // Codificamos el nombre para que el símbolo 火 sea legible para el servidor
+        const encodedNick = encodeURIComponent(nick);
+        const url = `https://api.kyros.tv/valorant/v1/mmr/${region}/${encodedNick}/${tag}`;
         
+        const response = await axios.get(url, { timeout: 10000 });
         const d = response.data.data;
+
         if (d && d.current_tier_patched) {
             const rank = d.current_tier_patched;
             const rr = d.ranking_in_tier;
             const lastChange = d.mmr_change_to_last_game;
             const sign = lastChange >= 0 ? "+" : "";
             
-            res.send(`💎 ${rank} | 🎯 ${rr} RR (${sign}${lastChange} RR) | Stitch #OHANA`);
+            res.send(`💎 ${rank} | 🎯 ${rr} RR (${sign}${lastChange}) | Stitch #OHANA`);
         } else {
-            res.send("Error: Perfil no encontrado. ¿Has jugado competitivas este episodio?");
+            res.send("Perfil no encontrado. Mira si en Tracker.gg tu perfil es PÚBLICO.");
         }
     } catch (e) {
-        // Si falla la primera, intentamos la ruta de emergencia de Henrik
+        // Si la primera falla, intentamos una segunda opción automáticamente
         try {
-            const url2 = `https://api.henrikdev.xyz/valorant/v1/mmr/eu/${encodeURIComponent(nick)}/OHANA`;
-            const resp2 = await axios.get(url2);
-            const d2 = resp2.data.data;
+            const url2 = `https://api.henrikdev.xyz/valorant/v1/mmr/eu/Stitch%20%E7%81%AB/OHANA`;
+            const res2 = await axios.get(url2);
+            const d2 = res2.data.data;
             res.send(`💎 ${d2.currenttierpatched} | 🎯 ${d2.ranking_in_tier} RR | Stitch #OHANA`);
         } catch (err) {
-            res.send("Riot está saturado. ¡Escribe !rango en 10 segundos para forzar la lectura!");
+            res.send("Riot está saturado. ¡Escribe !rango de nuevo en 5 segundos!");
         }
     }
 });
