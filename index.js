@@ -3,8 +3,13 @@ const axios = require('axios');
 const app = express();
 
 app.get('/rango', async (req, res) => {
-    const { region, nick, tag } = req.query;
+    // Configuración fija para tu cuenta de España
+    const region = 'eu';
+    const nick = 'Stitch 火';
+    const tag = 'OHANA';
+
     try {
+        // Esta URL codifica automáticamente los símbolos raros
         const url = `https://api.henrikdev.xyz/valorant/v1/mmr/${region}/${encodeURIComponent(nick)}/${tag}`;
         const response = await axios.get(url);
         
@@ -18,11 +23,13 @@ app.get('/rango', async (req, res) => {
 
             res.send(`💎 ${rank} | 🎯 ${rr} RR (${sign}${lastChange}) | ${winLoss}`);
         } else {
-            res.send("Error: No se encontraron datos. ¿Jugaste competitivas recientemente?");
+            res.send("Error: No se encontraron datos. ¿Jugaste competitivas?");
         }
     } catch (e) {
-        res.send("Error: Perfil privado o datos incorrectos.");
+        // Si falla, intentamos decir por qué
+        res.send("Error: El servidor de Riot no responde. Intenta de nuevo en 1 minuto.");
     }
 });
 
-app.listen(process.env.PORT || 3000);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
