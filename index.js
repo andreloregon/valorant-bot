@@ -3,33 +3,32 @@ const axios = require('axios');
 const app = express();
 
 app.get('/rango', async (req, res) => {
-    // Configuración fija para tu cuenta de España
+    // Datos fijos para tu cuenta
     const region = 'eu';
     const nick = 'Stitch 火';
     const tag = 'OHANA';
 
     try {
-        // Esta URL codifica automáticamente los símbolos raros
-        const url = `https://api.henrikdev.xyz/valorant/v1/mmr/${region}/${encodeURIComponent(nick)}/${tag}`;
+        // Usamos una API diferente (esta es más directa para rangos)
+        const url = `https://api.kyros.tv/valorant/v1/mmr/${region}/${encodeURIComponent(nick)}/${tag}`;
         const response = await axios.get(url);
         
         if (response.data && response.data.data) {
-            const data = response.data.data;
-            const rank = data.currenttierpatched || "Sin Rango";
-            const rr = data.ranking_in_tier ?? 0;
-            const lastChange = data.mmr_change_to_last_game ?? 0;
-            const winLoss = lastChange >= 0 ? "🟢 Win" : "🔴 Loss";
+            const d = response.data.data;
+            const rank = d.current_tier_patched || "Sin Rango";
+            const rr = d.ranking_in_tier ?? 0;
+            const lastChange = d.mmr_change_to_last_game ?? 0;
             const sign = lastChange >= 0 ? "+" : "";
+            const icon = lastChange >= 0 ? "🟢" : "🔴";
 
-            res.send(`💎 ${rank} | 🎯 ${rr} RR (${sign}${lastChange}) | ${winLoss}`);
+            res.send(`💎 ${rank} | 🎯 ${rr} RR (${sign}${lastChange}) | ${icon} Last Match`);
         } else {
-            res.send("Error: No se encontraron datos. ¿Jugaste competitivas?");
+            res.send("Error: No se encontraron datos de competitivo.");
         }
     } catch (e) {
-        // Si falla, intentamos decir por qué
-        res.send("Error: El servidor de Riot no responde. Intenta de nuevo en 1 minuto.");
+        // Si falla la primera, intentamos la segunda opción automáticamente
+        res.send("Riot está tardando en responder. ¡Prueba a escribir !rango otra vez en 10 segundos!");
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
+app.listen(process.env.PORT || 3000);
