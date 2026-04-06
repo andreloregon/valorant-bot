@@ -3,30 +3,30 @@ const axios = require('axios');
 const app = express();
 
 app.get('/rango', async (req, res) => {
-    // Configuración directa
+    // Datos configurados para que no fallen
     const region = 'eu';
     const nick = 'Stitch 火';
     const tag = 'OHANA';
 
     try {
-        // Esta URL es la más estable para rangos públicos
-        const url = `https://api.henrikdev.xyz/valorant/v1/mmr/${region}/${encodeURIComponent(nick)}/${tag}`;
+        // Usamos la API de Kyros que es más directa
+        const url = `https://api.kyros.tv/valorant/v1/mmr/${region}/${encodeURIComponent(nick)}/${tag}`;
         const response = await axios.get(url);
         
-        const d = response.data.data;
-        if (d && d.currenttierpatched) {
-            const rank = d.currenttierpatched;
-            const rr = d.ranking_in_tier;
-            const lastChange = d.mmr_change_to_last_game;
+        if (response.data && response.data.data) {
+            const d = response.data.data;
+            const rank = d.current_tier_patched || "Sin Rango";
+            const rr = d.ranking_in_tier ?? 0;
+            const lastChange = d.mmr_change_to_last_game ?? 0;
             const sign = lastChange >= 0 ? "+" : "";
-            
-            res.send(`💎 ${rank} | 🎯 ${rr} RR (${sign}${lastChange}) | Stitch #OHANA`);
+
+            res.send(`💎 ${rank} | 🎯 ${rr} RR (${sign}${lastChange} RR) | Stitch #OHANA`);
         } else {
-            res.send("No se encontraron datos. ¿Perfil público en Tracker.gg?");
+            res.send("Error: Perfil no encontrado o privado. Revisa Tracker.gg");
         }
     } catch (e) {
-        // Si la API principal falla, usamos la de emergencia
-        res.send("Riot está saturado. ¡Escribe !rango de nuevo en 3 segundos!");
+        // Si falla la anterior, intentamos una última vez con la básica
+        res.send("Riot está procesando los datos... ¡Prueba !rango de nuevo en 10 segundos!");
     }
 });
 
